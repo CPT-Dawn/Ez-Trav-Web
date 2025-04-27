@@ -23,9 +23,8 @@ const About = () => {
           
           <h2 className="text-2xl font-semibold mb-4 text-purple-600">Our Story</h2>
           <p className="text-lg text-gray-700 mb-6">
-            Founded in 2020, Ez Trav began with a simple idea: make booking a ride as easy as possible. 
-            What started as a small operation in a single city has grown into a service available in over 
-            50 cities nationwide, with plans for international expansion in the coming years.
+            Founded in 2025, Ez Trav began with a simple idea: make booking a ride as easy as possible. 
+            What started as a small operation in a single city.
           </p>
           
           <h2 className="text-2xl font-semibold mb-4 text-purple-600">Our Values</h2>
@@ -72,9 +71,9 @@ const About = () => {
           
           <div className="grid md:grid-cols-3 gap-6 mb-8">
             {[
-              { title: 'Customer Support', contact: 'support@eztrav.com', icon: '📧' },
-              { title: 'Phone', contact: '1-800-EZ-TRAV', icon: '📞' },
-              { title: 'Headquarters', contact: '123 Transit Ave, San Francisco, CA', icon: '📍' }
+              { title: 'Customer Support', contact: 'E23CSEU0004@bennett.edu.in', icon: '📧' },
+              { title: 'Phone', contact: '+91 86024 32021', icon: '📞' },
+              { title: 'Headquarters', contact: 'Bennett University, Greater Noida', icon: '📍' }
             ].map((item) => (
               <div key={item.title} className="text-center">
                 <div className="text-4xl mb-2">{item.icon}</div>
@@ -94,7 +93,7 @@ const About = () => {
                 id="name"
                 type="text"
                 className="input"
-                placeholder="John Doe"
+                placeholder="Alok Tiwari"
                 required
               />
             </div>
@@ -107,7 +106,7 @@ const About = () => {
                 id="email"
                 type="email"
                 className="input"
-                placeholder="john@example.com"
+                placeholder="Alok.Tiwari@gmail.com"
                 required
               />
             </div>

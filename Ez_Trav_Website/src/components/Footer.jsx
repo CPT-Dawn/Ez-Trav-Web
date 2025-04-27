@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { FaFacebookF, FaTwitter, FaInstagram, FaLinkedinIn, FaYoutube, FaSpotify } from 'react-icons/fa';
+import { FaInstagram, FaLinkedinIn, FaYoutube, FaSpotify } from 'react-icons/fa';
 
 const Footer = () => {
   const socialLinks = [
@@ -18,9 +18,9 @@ const Footer = () => {
             <h3 className="text-xl font-bold mb-4">Ez Trav</h3>
             {/* Image instead of text */}
             <img 
-              src="https://via.placeholder.com/200" 
+              src="/assets/icon.png" 
               alt="Ez Trav Logo" 
-              className="w-32 h-auto mb-4" // Adjust size as necessary
+              className="w-32 h-32 mb-4" // Adjust size as necessary
             />
           </div>
 
@@ -51,7 +51,8 @@ const Footer = () => {
                   key={label}
                   href={link}
                   className="text-gray-300 hover:text-white text-2xl transition-transform transform hover:scale-110"
-                  aria-label={label}
+                  aria-label={label} 
+                  target="_blank"
                 >
                   {icon}
                 </a>
