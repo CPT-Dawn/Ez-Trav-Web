@@ -4,10 +4,10 @@ import { motion } from "framer-motion";
 const ProfilePage = ({ onLogout }) => {
   const [activeTab, setActiveTab] = useState("profile");
   const [user, setUser] = useState({
-    name: "John Doe",
-    email: "john.doe@example.com",
-    phone: "+1 (555) 123-4567",
-    address: "123 Main St, New York, NY",
+    name: "Alok Tiwari",
+    email: "Alok.Tiwari@gmail.com",
+    phone: "+91 86024 32021",
+    address: "Bennett University, Greater Noida",
   });
   const [editing, setEditing] = useState(false);
   const [editForm, setEditForm] = useState({ ...user });
@@ -36,7 +36,7 @@ const ProfilePage = ({ onLogout }) => {
       date: "2025-04-25",
       from: "Home",
       to: "Office",
-      amount: "$15.50",
+      amount: "₹157.50",
       status: "Completed",
     },
     {
@@ -44,7 +44,7 @@ const ProfilePage = ({ onLogout }) => {
       date: "2025-04-22",
       from: "Airport",
       to: "Hotel",
-      amount: "$32.75",
+      amount: "₹325.75",
       status: "Completed",
     },
     {
@@ -52,7 +52,7 @@ const ProfilePage = ({ onLogout }) => {
       date: "2025-04-18",
       from: "Office",
       to: "Restaurant",
-      amount: "$12.20",
+      amount: "₹129.20",
       status: "Completed",
     },
     {
@@ -60,7 +60,7 @@ const ProfilePage = ({ onLogout }) => {
       date: "2025-04-15",
       from: "Home",
       to: "Mall",
-      amount: "$18.90",
+      amount: "₹184.90",
       status: "Cancelled",
     },
   ];
@@ -69,11 +69,11 @@ const ProfilePage = ({ onLogout }) => {
   const paymentMethods = [
     {
       id: 1,
-      type: "Credit Card",
-      name: "Visa ending in 4242",
+      type: "Debit Card",
+      name: "Visa ending in 9842",
       isDefault: true,
     },
-    { id: 2, type: "PayPal", name: "john.doe@example.com", isDefault: false },
+    { id: 2, type: "UPI", name: "Alok.Tiwari@Axl", isDefault: false },
   ];
 
   return (
