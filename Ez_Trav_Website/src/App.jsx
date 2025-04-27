@@ -1,35 +1,92 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import React from 'react';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { AnimatePresence } from 'framer-motion';
+
+// Pages
+import Login from './pages/Login';
+import Signup from './pages/Signup';
+import Homepage from './pages/Homepage';
+import BookingPage from './pages/BookingPage';
+import ProfilePage from './pages/ProfilePage';
+import About from './pages/About';
+import NotFound from './pages/NotFound';
+
+// Components
+import Navbar from './components/Navbar';
+import Footer from './components/Footer';
 
 function App() {
-  const [count, setCount] = useState(0)
+  // Simple auth state (would connect to actual auth in a real app)
+  const [isAuthenticated, setIsAuthenticated] = React.useState(
+    localStorage.getItem('ezTravAuth') === 'true'
+  );
+
+  const login = () => {
+    localStorage.setItem('ezTravAuth', 'true');
+    setIsAuthenticated(true);
+  };
+
+  const logout = () => {
+    localStorage.removeItem('ezTravAuth');
+    setIsAuthenticated(false);
+  };
 
   return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
+    <Router>
+      <div className="flex flex-col min-h-screen bg-gray-50">
+        <Navbar isAuthenticated={isAuthenticated} onLogout={logout} />
+        <main className="flex-grow">
+          <AnimatePresence mode="wait">
+            <Routes>
+              <Route 
+                path="/login" 
+                element={
+                  isAuthenticated ? 
+                  <Navigate to="/" /> : 
+                  <Login onLogin={login} />
+                } 
+              />
+              <Route 
+                path="/signup" 
+                element={
+                  isAuthenticated ? 
+                  <Navigate to="/" /> : 
+                  <Signup onSignup={login} />
+                } 
+              />
+              <Route 
+                path="/" 
+                element={
+                  isAuthenticated ? 
+                  <Homepage /> : 
+                  <Navigate to="/login" />
+                } 
+              />
+              <Route 
+                path="/booking" 
+                element={
+                  isAuthenticated ? 
+                  <BookingPage /> : 
+                  <Navigate to="/login" />
+                } 
+              />
+              <Route 
+                path="/profile" 
+                element={
+                  isAuthenticated ? 
+                  <ProfilePage onLogout={logout} /> : 
+                  <Navigate to="/login" />
+                } 
+              />
+              <Route path="/about" element={<About />} />
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </AnimatePresence>
+        </main>
+        <Footer />
       </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.jsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
+    </Router>
+  );
 }
 
-export default App
+export default App;
