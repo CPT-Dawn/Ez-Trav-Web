@@ -29,7 +29,7 @@ const BookingPage = () => {
   const [aqi, setAqi] = useState(null);
 
   const { isLoaded } = useJsApiLoader({
-    googleMapsApiKey: "AIzaSyC7egbUiZzouXh68Qg5C95YrbzuGT0av_Y", 
+    googleMapsApiKey: "AIzaSyC7egbUiZzouXh68Qg5C95YrbzuGT0av_Y", // ⚡ Replace with your API Key
     libraries: ["places"],
   });
 
@@ -46,10 +46,10 @@ const BookingPage = () => {
         });
       }
       if (destinationRef.current) {
-        const autocompleteDestination =
-          new window.google.maps.places.Autocomplete(destinationRef.current, {
-            types: ["geocode"],
-          });
+        const autocompleteDestination = new window.google.maps.places.Autocomplete(
+          destinationRef.current,
+          { types: ["geocode"] }
+        );
         autocompleteDestination.addListener("place_changed", () => {
           const place = autocompleteDestination.getPlace();
           setDestination(place.formatted_address || "");
@@ -70,15 +70,11 @@ const BookingPage = () => {
         (result, status) => {
           if (status === "OK" && result) {
             setDirectionsResponse(result);
-            // Get ETA (duration text)
             const durationText = result.routes[0].legs[0].duration.text;
             setEta(durationText);
 
-            // 👉 ADD THIS HERE
             const point = result.routes[0].overview_path[0];
             fetchAQI(point.lat(), point.lng());
-
-            // 👈
           } else {
             console.error("Error fetching directions:", status);
           }
@@ -87,23 +83,33 @@ const BookingPage = () => {
     }
   }, [pickup, destination, isLoaded]);
 
-  const fetchAQI = async (latLngObj) => {
+  const fetchAQI = async (lat, lng) => {
     try {
-      const apiKey = "18038b08a88a3a7e1dc7540dc829ffc48d8741c0"; 
-      const lat = latLngObj.lat;
-      const lon = latLngObj.lng;
-
+      const apiKey = "AIzaSyC7egbUiZzouXh68Qg5C95YrbzuGT0av_Y"; // ⚡ Replace with your API Key
       const response = await fetch(
-        `https://api.waqi.info/feed/geo:${lat};${lon}/?token=${apiKey}`
+        `https://airquality.googleapis.com/v1/currentConditions:lookup?key=${apiKey}`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            location: {
+              latitude: lat,
+              longitude: lng,
+            },
+          }),
+        }
       );
-      const data = await response.json();
-      console.log("AQI Data:", data);
 
-      if (data.status === "ok") {
-        const aqi = data.data.aqi;
+      const data = await response.json();
+      console.log("Google AQI Data:", data);
+
+      if (data && data.currentConditions && data.currentConditions.airQualityIndex) {
+        const aqi = data.currentConditions.airQualityIndex.aqi;
         setAqi(aqi);
       } else {
-        console.error("Failed to fetch AQI:", data.data);
+        console.error("Failed to fetch AQI:", data);
       }
     } catch (error) {
       console.error("Failed to fetch AQI:", error);
