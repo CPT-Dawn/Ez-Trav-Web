@@ -40,7 +40,7 @@ const Homepage = () => {
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
-            className="bg-gradient-to-r from-purple-600 to-purple-800 rounded-2xl text-white mb-12 z-10 px-4 py-8 md:px-8 md:py-12"
+            className="bg-gradient-to-r from-purple-600 to-purple-800 rounded-2xl text-white  z-10 px-4 py-8 md:px-8 md:py-12"
           >
             <div className="max-w-3xl">
               <h1 className="text-4xl md:text-5xl font-bold mb-4">Book Your Ride in Seconds</h1>
