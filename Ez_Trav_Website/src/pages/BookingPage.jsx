@@ -29,7 +29,7 @@ const BookingPage = () => {
   const [aqi, setAqi] = useState(null);
 
   const { isLoaded } = useJsApiLoader({
-    googleMapsApiKey: "AIzaSyC7egbUiZzouXh68Qg5C95YrbzuGT0av_Y", // ⚡ Replace with your API Key
+    googleMapsApiKey: "AIzaSyC7egbUiZzouXh68Qg5C95YrbzuGT0av_Y", // <-- Replace with your actual key
     libraries: ["places"],
   });
 
@@ -85,7 +85,7 @@ const BookingPage = () => {
 
   const fetchAQI = async (lat, lng) => {
     try {
-      const apiKey = "AIzaSyC7egbUiZzouXh68Qg5C95YrbzuGT0av_Y"; // ⚡ Replace with your API Key
+      const apiKey = "YOUR_GOOGLE_API_KEY"; // <-- Replace your key
       const response = await fetch(
         `https://airquality.googleapis.com/v1/currentConditions:lookup?key=${apiKey}`,
         {
@@ -94,27 +94,29 @@ const BookingPage = () => {
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            location: {
-              latitude: lat,
-              longitude: lng,
-            },
+            location: { latitude: lat, longitude: lng },
+            extraComputations: ["LOCAL_AQI"],
+            languageCode: "en",
           }),
         }
       );
-
+  
       const data = await response.json();
       console.log("Google AQI Data:", data);
-
-      if (data && data.currentConditions && data.currentConditions.airQualityIndex) {
-        const aqi = data.currentConditions.airQualityIndex.aqi;
-        setAqi(aqi);
+  
+      if (Array.isArray(data.indexes) && data.indexes.length > 0) {
+        const aqiValue = data.indexes[0].aqi; // <-- Correct place!
+        setAqi(aqiValue);
       } else {
-        console.error("Failed to fetch AQI:", data);
+        console.error("Invalid AQI response:", data);
+        setAqi("unavailable");
       }
     } catch (error) {
       console.error("Failed to fetch AQI:", error);
+      setAqi("unavailable");
     }
   };
+  
 
   const handleVehicleSelect = (vehicle) => {
     setSelectedVehicle(vehicle);
@@ -126,11 +128,21 @@ const BookingPage = () => {
   };
 
   const getAQILevel = (aqi) => {
+    if (typeof aqi !== "number") return "Unavailable";
     if (aqi <= 50) return "Good";
     if (aqi <= 100) return "Fair";
     if (aqi <= 150) return "Moderate";
     if (aqi <= 200) return "Poor";
     return "Very Poor";
+  };
+
+  const getAQIColor = (aqi) => {
+    if (typeof aqi !== "number") return "bg-gray-400";
+    if (aqi <= 50) return "bg-green-400";
+    if (aqi <= 100) return "bg-yellow-400";
+    if (aqi <= 150) return "bg-orange-400";
+    if (aqi <= 200) return "bg-red-400";
+    return "bg-purple-800";
   };
 
   return (
@@ -254,11 +266,16 @@ const BookingPage = () => {
               ⏰ Estimated Time:
               <span className="text-purple-600 ml-2">{eta || "N/A"}</span>
             </div>
-            <div className="mt-4 md:mt-0">
+            <div className="mt-4 md:mt-0 flex flex-col items-center">
               🌫️ Air Quality:
-              <span className="text-green-600 ml-2">
-                {aqi ? `${getAQILevel(aqi)} (${aqi})` : "Loading..."}
-              </span>
+              {aqi && typeof aqi === "number" && (
+                <div className="flex items-center gap-2 mt-2">
+                  <div className={`w-4 h-4 rounded-full ${getAQIColor(aqi)}`}></div>
+                  <span className="text-green-600">{`${getAQILevel(aqi)} (${aqi})`}</span>
+                </div>
+              )}
+              {aqi === "unavailable" && <span className="text-gray-500 ml-2">Unavailable</span>}
+              {!aqi && aqi !== "unavailable" && <span className="text-gray-500 ml-2">Loading...</span>}
             </div>
           </div>
         </div>
