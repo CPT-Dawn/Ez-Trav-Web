@@ -1,48 +1,58 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { GoogleMap, DirectionsRenderer, useJsApiLoader } from '@react-google-maps/api';
+import React, { useState, useEffect, useRef } from "react";
+import {
+  GoogleMap,
+  DirectionsRenderer,
+  useJsApiLoader,
+} from "@react-google-maps/api";
 
 const containerStyle = {
-  width: '100%',
-  height: '400px',
-  borderRadius: '16px',
+  width: "100%",
+  height: "400px",
+  borderRadius: "16px",
 };
 
 const dummyVehicles = [
-  { id: 1, type: 'Standard', price: '₹150' },
-  { id: 2, type: 'Comfort', price: '₹220' },
-  { id: 3, type: 'Luxury', price: '₹400' },
+  { id: 1, type: "Standard", price: "₹150" },
+  { id: 2, type: "Comfort", price: "₹220" },
+  { id: 3, type: "Luxury", price: "₹400" },
 ];
 
 const BookingPage = () => {
-  const [pickup, setPickup] = useState('');
-  const [destination, setDestination] = useState('');
+  const [pickup, setPickup] = useState("");
+  const [destination, setDestination] = useState("");
   const pickupRef = useRef(null);
   const destinationRef = useRef(null);
   const [directionsResponse, setDirectionsResponse] = useState(null);
   const [selectedVehicle, setSelectedVehicle] = useState(null);
   const [rideConfirmed, setRideConfirmed] = useState(false);
-  const [eta, setEta] = useState('');
+  const [eta, setEta] = useState("");
   const [aqi, setAqi] = useState(null);
 
   const { isLoaded } = useJsApiLoader({
-    googleMapsApiKey: 'AIzaSyC7egbUiZzouXh68Qg5C95YrbzuGT0av_Y', // Replace with your Google Maps API key
-    libraries: ['places'],
+    googleMapsApiKey: "AIzaSyC7egbUiZzouXh68Qg5C95YrbzuGT0av_Y", 
+    libraries: ["places"],
   });
 
   useEffect(() => {
     if (isLoaded && window.google) {
       if (pickupRef.current) {
-        const autocompletePickup = new window.google.maps.places.Autocomplete(pickupRef.current, { types: ['geocode'] });
-        autocompletePickup.addListener('place_changed', () => {
+        const autocompletePickup = new window.google.maps.places.Autocomplete(
+          pickupRef.current,
+          { types: ["geocode"] }
+        );
+        autocompletePickup.addListener("place_changed", () => {
           const place = autocompletePickup.getPlace();
-          setPickup(place.formatted_address || '');
+          setPickup(place.formatted_address || "");
         });
       }
       if (destinationRef.current) {
-        const autocompleteDestination = new window.google.maps.places.Autocomplete(destinationRef.current, { types: ['geocode'] });
-        autocompleteDestination.addListener('place_changed', () => {
+        const autocompleteDestination =
+          new window.google.maps.places.Autocomplete(destinationRef.current, {
+            types: ["geocode"],
+          });
+        autocompleteDestination.addListener("place_changed", () => {
           const place = autocompleteDestination.getPlace();
-          setDestination(place.formatted_address || '');
+          setDestination(place.formatted_address || "");
         });
       }
     }
@@ -58,39 +68,45 @@ const BookingPage = () => {
           travelMode: window.google.maps.TravelMode.DRIVING,
         },
         (result, status) => {
-          if (status === 'OK' && result) {
+          if (status === "OK" && result) {
             setDirectionsResponse(result);
             // Get ETA (duration text)
             const durationText = result.routes[0].legs[0].duration.text;
             setEta(durationText);
-            // Fetch AQI now
-            const { lat, lng } = result.routes[0].overview_path[0];
-            fetchAQI(lat, lng);
+
+            // 👉 ADD THIS HERE
+            const point = result.routes[0].overview_path[0];
+            fetchAQI(point.lat(), point.lng());
+
+            // 👈
           } else {
-            console.error('Error fetching directions:', status);
+            console.error("Error fetching directions:", status);
           }
         }
       );
     }
   }, [pickup, destination, isLoaded]);
 
-  const fetchAQI = async (lat, lon) => {
+  const fetchAQI = async (latLngObj) => {
     try {
-      const apiKey = '402a7f28906a890dc5f3f3a9c3e2705f'; // Replace with your OpenWeatherMap API key
+      const apiKey = "18038b08a88a3a7e1dc7540dc829ffc48d8741c0"; 
+      const lat = latLngObj.lat;
+      const lon = latLngObj.lng;
+
       const response = await fetch(
-        `https://api.openweathermap.org/data/2.5/air_pollution?lat=${lat}&lon=${lon}&appid=${apiKey}`
+        `https://api.waqi.info/feed/geo:${lat};${lon}/?token=${apiKey}`
       );
       const data = await response.json();
-      console.log('AQI Data:', data);  // Log the response to check the structure
+      console.log("AQI Data:", data);
 
-      if (data && data.list && data.list.length > 0) {
-        const aqi = data.list[0].main.aqi;
-        setAqi(aqi); // Set AQI data from the API
+      if (data.status === "ok") {
+        const aqi = data.data.aqi;
+        setAqi(aqi);
       } else {
-        console.error('No AQI data found:', data);
+        console.error("Failed to fetch AQI:", data.data);
       }
     } catch (error) {
-      console.error('Failed to fetch AQI:', error);
+      console.error("Failed to fetch AQI:", error);
     }
   };
 
@@ -104,33 +120,27 @@ const BookingPage = () => {
   };
 
   const getAQILevel = (aqi) => {
-    switch (aqi) {
-      case 1:
-        return "Good";
-      case 2:
-        return "Fair";
-      case 3:
-        return "Moderate";
-      case 4:
-        return "Poor";
-      case 5:
-        return "Very Poor";
-      default:
-        return "Unknown";
-    }
+    if (aqi <= 50) return "Good";
+    if (aqi <= 100) return "Fair";
+    if (aqi <= 150) return "Moderate";
+    if (aqi <= 200) return "Poor";
+    return "Very Poor";
   };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 to-indigo-100 flex flex-col items-center p-6">
-      <h1 className="text-5xl font-extrabold text-purple-700 mb-10 drop-shadow-lg">EzTrav</h1>
+      <h1 className="text-5xl font-extrabold text-purple-700 mb-10 drop-shadow-lg">
+        EzTrav
+      </h1>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-10 w-full max-w-7xl">
         {/* Left Side */}
         <div className="bg-white p-8 rounded-3xl shadow-2xl flex flex-col">
-          {/* Inputs and Vehicles (Same as before) */}
           <div className="space-y-6">
             <div>
-              <label className="block text-gray-700 font-semibold mb-2">Pickup Location</label>
+              <label className="block text-gray-700 font-semibold mb-2">
+                Pickup Location
+              </label>
               <input
                 type="text"
                 ref={pickupRef}
@@ -140,7 +150,9 @@ const BookingPage = () => {
             </div>
 
             <div>
-              <label className="block text-gray-700 font-semibold mb-2">Destination</label>
+              <label className="block text-gray-700 font-semibold mb-2">
+                Destination
+              </label>
               <input
                 type="text"
                 ref={destinationRef}
@@ -150,16 +162,22 @@ const BookingPage = () => {
             </div>
           </div>
 
-          {/* Vehicle selection */}
+          {/* Vehicle Selection */}
           <div className="mt-8">
-            <h2 className="text-2xl font-bold mb-4 text-gray-800">Choose Your Vehicle</h2>
+            <h2 className="text-2xl font-bold mb-4 text-gray-800">
+              Choose Your Vehicle
+            </h2>
             <div className="grid grid-cols-1 gap-4">
               {dummyVehicles.map((vehicle) => (
                 <div
                   key={vehicle.id}
                   onClick={() => handleVehicleSelect(vehicle)}
                   className={`p-5 border rounded-2xl flex justify-between items-center cursor-pointer transition transform hover:scale-105
-                    ${selectedVehicle?.id === vehicle.id ? 'border-purple-500 bg-purple-100' : 'bg-gray-50'}
+                    ${
+                      selectedVehicle?.id === vehicle.id
+                        ? "border-purple-500 bg-purple-100"
+                        : "bg-gray-50"
+                    }
                   `}
                 >
                   <span className="text-lg font-semibold">{vehicle.type}</span>
@@ -181,8 +199,12 @@ const BookingPage = () => {
 
             {rideConfirmed && (
               <div className="text-center mt-8">
-                <h2 className="text-3xl font-bold text-green-600">🎉 Ride Confirmed!</h2>
-                <p className="mt-2 text-gray-600">Your {selectedVehicle.type} ride is on its way!</p>
+                <h2 className="text-3xl font-bold text-green-600">
+                  🎉 Ride Confirmed!
+                </h2>
+                <p className="mt-2 text-gray-600">
+                  Your {selectedVehicle.type} ride is on its way!
+                </p>
               </div>
             )}
           </div>
@@ -196,7 +218,11 @@ const BookingPage = () => {
             ) : (
               <GoogleMap
                 mapContainerStyle={containerStyle}
-                center={directionsResponse ? directionsResponse.routes[0].overview_path[0] : { lat: 28.6139, lng: 77.2090 }}
+                center={
+                  directionsResponse
+                    ? directionsResponse.routes[0].overview_path[0]
+                    : { lat: 28.6139, lng: 77.209 }
+                }
                 zoom={13}
                 options={{ disableDefaultUI: true }}
               >
@@ -205,7 +231,7 @@ const BookingPage = () => {
                     directions={directionsResponse}
                     options={{
                       polylineOptions: {
-                        strokeColor: '#7c3aed', 
+                        strokeColor: "#7c3aed",
                         strokeOpacity: 0.9,
                         strokeWeight: 6,
                       },
@@ -219,12 +245,14 @@ const BookingPage = () => {
           {/* ETA and AQI Details */}
           <div className="mt-6 bg-white p-6 rounded-3xl shadow-2xl flex flex-col md:flex-row justify-around text-center text-lg font-semibold">
             <div>
-              ⏰ Estimated Time: 
-              <span className="text-purple-600 ml-2">{eta || 'N/A'}</span>
+              ⏰ Estimated Time:
+              <span className="text-purple-600 ml-2">{eta || "N/A"}</span>
             </div>
             <div className="mt-4 md:mt-0">
-              🌫️ Air Quality: 
-              <span className="text-green-600 ml-2">{aqi ? getAQILevel(aqi) : 'Loading...'}</span>
+              🌫️ Air Quality:
+              <span className="text-green-600 ml-2">
+                {aqi ? `${getAQILevel(aqi)} (${aqi})` : "Loading..."}
+              </span>
             </div>
           </div>
         </div>
