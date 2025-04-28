@@ -1,239 +1,235 @@
-import React, { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import React, { useState, useEffect, useRef } from 'react';
+import { GoogleMap, DirectionsRenderer, useJsApiLoader } from '@react-google-maps/api';
+
+const containerStyle = {
+  width: '100%',
+  height: '400px',
+  borderRadius: '16px',
+};
+
+const dummyVehicles = [
+  { id: 1, type: 'Standard', price: '₹150' },
+  { id: 2, type: 'Comfort', price: '₹220' },
+  { id: 3, type: 'Luxury', price: '₹400' },
+];
 
 const BookingPage = () => {
-  const [bookingStep, setBookingStep] = useState(1);
-  const [bookingDetails, setBookingDetails] = useState({
-    pickup: '',
-    destination: '',
-    date: '',
-    time: '',
-    rideType: 'standard',
+  const [pickup, setPickup] = useState('');
+  const [destination, setDestination] = useState('');
+  const pickupRef = useRef(null);
+  const destinationRef = useRef(null);
+  const [directionsResponse, setDirectionsResponse] = useState(null);
+  const [selectedVehicle, setSelectedVehicle] = useState(null);
+  const [rideConfirmed, setRideConfirmed] = useState(false);
+  const [eta, setEta] = useState('');
+  const [aqi, setAqi] = useState(null);
+
+  const { isLoaded } = useJsApiLoader({
+    googleMapsApiKey: 'AIzaSyC7egbUiZzouXh68Qg5C95YrbzuGT0av_Y', // Replace with your Google Maps API key
+    libraries: ['places'],
   });
-  const [isBookingConfirmed, setIsBookingConfirmed] = useState(false);
 
-  const rideTypes = [
-    { id: 'standard', name: 'Standard', price: '$15', time: '5 min' },
-    { id: 'comfort', name: 'Comfort', price: '$22', time: '7 min' },
-    { id: 'premium', name: 'Premium', price: '$30', time: '10 min' },
-  ];
+  useEffect(() => {
+    if (isLoaded && window.google) {
+      if (pickupRef.current) {
+        const autocompletePickup = new window.google.maps.places.Autocomplete(pickupRef.current, { types: ['geocode'] });
+        autocompletePickup.addListener('place_changed', () => {
+          const place = autocompletePickup.getPlace();
+          setPickup(place.formatted_address || '');
+        });
+      }
+      if (destinationRef.current) {
+        const autocompleteDestination = new window.google.maps.places.Autocomplete(destinationRef.current, { types: ['geocode'] });
+        autocompleteDestination.addListener('place_changed', () => {
+          const place = autocompleteDestination.getPlace();
+          setDestination(place.formatted_address || '');
+        });
+      }
+    }
+  }, [isLoaded]);
 
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setBookingDetails((prev) => ({ ...prev, [name]: value }));
+  useEffect(() => {
+    if (pickup && destination && isLoaded && window.google) {
+      const directionsService = new window.google.maps.DirectionsService();
+      directionsService.route(
+        {
+          origin: pickup,
+          destination: destination,
+          travelMode: window.google.maps.TravelMode.DRIVING,
+        },
+        (result, status) => {
+          if (status === 'OK' && result) {
+            setDirectionsResponse(result);
+            // Get ETA (duration text)
+            const durationText = result.routes[0].legs[0].duration.text;
+            setEta(durationText);
+            // Fetch AQI now
+            const { lat, lng } = result.routes[0].overview_path[0];
+            fetchAQI(lat, lng);
+          } else {
+            console.error('Error fetching directions:', status);
+          }
+        }
+      );
+    }
+  }, [pickup, destination, isLoaded]);
+
+  const fetchAQI = async (lat, lon) => {
+    try {
+      const apiKey = '402a7f28906a890dc5f3f3a9c3e2705f'; // Replace with your OpenWeatherMap API key
+      const response = await fetch(
+        `https://api.openweathermap.org/data/2.5/air_pollution?lat=${lat}&lon=${lon}&appid=${apiKey}`
+      );
+      const data = await response.json();
+      console.log('AQI Data:', data);  // Log the response to check the structure
+
+      if (data && data.list && data.list.length > 0) {
+        const aqi = data.list[0].main.aqi;
+        setAqi(aqi); // Set AQI data from the API
+      } else {
+        console.error('No AQI data found:', data);
+      }
+    } catch (error) {
+      console.error('Failed to fetch AQI:', error);
+    }
   };
 
-  const handleNextStep = () => setBookingStep((prev) => prev + 1);
-  const handlePrevStep = () => setBookingStep((prev) => prev - 1);
-
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    setIsBookingConfirmed(true);
+  const handleVehicleSelect = (vehicle) => {
+    setSelectedVehicle(vehicle);
+    setRideConfirmed(false);
   };
 
-  const InputField = ({ label, name, type = "text", placeholder }) => (
-    <div className="mb-4">
-      <label className="block text-gray-700 mb-2" htmlFor={name}>
-        {label}
-      </label>
-      <input
-        id={name}
-        name={name}
-        type={type}
-        value={bookingDetails[name]}
-        onChange={handleInputChange}
-        className="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
-        placeholder={placeholder}
-        required
-      />
-    </div>
-  );
+  const handleConfirmRide = () => {
+    setRideConfirmed(true);
+  };
 
-  const ProgressBar = () => (
-    <div className="flex mb-8 justify-center">
-      {[1, 2, 3].map((step) => (
-        <div key={step} className="flex items-center">
-          <div className={`flex items-center justify-center w-10 h-10 rounded-full 
-            ${bookingStep >= step ? 'bg-purple-600 text-white' : 'bg-gray-200 text-gray-600'}`}>
-            {step}
-          </div>
-          {step < 3 && (
-            <div className={`w-16 h-1 ${bookingStep > step ? 'bg-purple-600' : 'bg-gray-200'}`} />
-          )}
-        </div>
-      ))}
-    </div>
-  );
-
-  const MotionButton = ({ children, ...props }) => (
-    <motion.button
-      whileHover={{ scale: 1.05 }}
-      whileTap={{ scale: 0.95 }}
-      {...props}
-    >
-      {children}
-    </motion.button>
-  );
+  const getAQILevel = (aqi) => {
+    switch (aqi) {
+      case 1:
+        return "Good";
+      case 2:
+        return "Fair";
+      case 3:
+        return "Moderate";
+      case 4:
+        return "Poor";
+      case 5:
+        return "Very Poor";
+      default:
+        return "Unknown";
+    }
+  };
 
   return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      className="container mx-auto px-4 py-10"
-    >
-      <div className="max-w-2xl mx-auto">
-        <h1 className="text-3xl font-bold mb-10 text-center text-gray-800">
-          Book Your Ride
-        </h1>
+    <div className="min-h-screen bg-gradient-to-br from-purple-50 to-indigo-100 flex flex-col items-center p-6">
+      <h1 className="text-5xl font-extrabold text-purple-700 mb-10 drop-shadow-lg">EzTrav</h1>
 
-        <AnimatePresence mode="wait">
-          {!isBookingConfirmed ? (
-            <motion.div
-              key="form"
-              initial={{ opacity: 0, x: -30 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: 30 }}
-              transition={{ duration: 0.4 }}
-              className="bg-white rounded-lg shadow-lg p-8"
-            >
-              <ProgressBar />
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-10 w-full max-w-7xl">
+        {/* Left Side */}
+        <div className="bg-white p-8 rounded-3xl shadow-2xl flex flex-col">
+          {/* Inputs and Vehicles (Same as before) */}
+          <div className="space-y-6">
+            <div>
+              <label className="block text-gray-700 font-semibold mb-2">Pickup Location</label>
+              <input
+                type="text"
+                ref={pickupRef}
+                placeholder="Enter pickup address"
+                className="w-full p-4 border border-gray-300 rounded-xl focus:outline-none focus:ring-4 focus:ring-purple-400 transition"
+              />
+            </div>
 
-              <form onSubmit={handleSubmit}>
-                {bookingStep === 1 && (
-                  <>
-                    <InputField label="Pickup Location" name="pickup" placeholder="Enter pickup address" />
-                    <InputField label="Destination" name="destination" placeholder="Enter destination address" />
-                  </>
-                )}
+            <div>
+              <label className="block text-gray-700 font-semibold mb-2">Destination</label>
+              <input
+                type="text"
+                ref={destinationRef}
+                placeholder="Enter destination address"
+                className="w-full p-4 border border-gray-300 rounded-xl focus:outline-none focus:ring-4 focus:ring-purple-400 transition"
+              />
+            </div>
+          </div>
 
-                {bookingStep === 2 && (
-                  <>
-                    <InputField label="Date" name="date" type="date" />
-                    <InputField label="Time" name="time" type="time" />
-                  </>
-                )}
-
-                {bookingStep === 3 && (
-                  <div className="mb-6">
-                    <label className="block text-gray-700 mb-2">Select Ride Type</label>
-                    <div className="space-y-3">
-                      {rideTypes.map((ride) => (
-                        <label
-                          key={ride.id}
-                          className={`flex items-center p-4 border rounded-lg cursor-pointer 
-                          ${bookingDetails.rideType === ride.id 
-                            ? 'border-purple-600 bg-purple-50' 
-                            : 'border-gray-300 hover:border-purple-400'}`}
-                        >
-                          <input
-                            type="radio"
-                            name="rideType"
-                            value={ride.id}
-                            checked={bookingDetails.rideType === ride.id}
-                            onChange={handleInputChange}
-                            className="mr-4 accent-purple-600"
-                          />
-                          <div className="flex justify-between w-full">
-                            <span className="font-medium">{ride.name}</span>
-                            <div className="text-right">
-                              <div className="text-purple-600 font-bold">{ride.price}</div>
-                              <div className="text-sm text-gray-500">Arrives in {ride.time}</div>
-                            </div>
-                          </div>
-                        </label>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                <div className="flex justify-between mt-8">
-                  {bookingStep > 1 && (
-                    <MotionButton
-                      type="button"
-                      className="btn btn-outline"
-                      onClick={handlePrevStep}
-                    >
-                      Back
-                    </MotionButton>
-                  )}
-                  {bookingStep < 3 ? (
-                    <MotionButton
-                      type="button"
-                      className="btn btn-primary ml-auto"
-                      onClick={handleNextStep}
-                    >
-                      Next
-                    </MotionButton>
-                  ) : (
-                    <MotionButton
-                      type="submit"
-                      className="btn btn-primary ml-auto"
-                    >
-                      Confirm Booking
-                    </MotionButton>
-                  )}
+          {/* Vehicle selection */}
+          <div className="mt-8">
+            <h2 className="text-2xl font-bold mb-4 text-gray-800">Choose Your Vehicle</h2>
+            <div className="grid grid-cols-1 gap-4">
+              {dummyVehicles.map((vehicle) => (
+                <div
+                  key={vehicle.id}
+                  onClick={() => handleVehicleSelect(vehicle)}
+                  className={`p-5 border rounded-2xl flex justify-between items-center cursor-pointer transition transform hover:scale-105
+                    ${selectedVehicle?.id === vehicle.id ? 'border-purple-500 bg-purple-100' : 'bg-gray-50'}
+                  `}
+                >
+                  <span className="text-lg font-semibold">{vehicle.type}</span>
+                  <span className="text-lg font-bold">{vehicle.price}</span>
                 </div>
-              </form>
-            </motion.div>
-          ) : (
-            <motion.div
-              key="confirmation"
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.9 }}
-              transition={{ duration: 0.5 }}
-              className="bg-white rounded-lg shadow-lg p-8 text-center"
-            >
-              <div className="text-5xl mb-6">🎉</div>
-              <h2 className="text-2xl font-bold mb-4 text-purple-600">Booking Confirmed!</h2>
-              <p className="text-lg mb-6 text-gray-700">
-                Your ride is booked successfully. Your driver will arrive on time.
-              </p>
+              ))}
+            </div>
 
-              <div className="bg-gray-50 p-4 rounded-lg mb-6">
-                <div className="grid grid-cols-2 gap-4 text-left">
-                  <div>
-                    <p className="text-gray-500">From</p>
-                    <p className="font-semibold">{bookingDetails.pickup}</p>
-                  </div>
-                  <div>
-                    <p className="text-gray-500">To</p>
-                    <p className="font-semibold">{bookingDetails.destination}</p>
-                  </div>
-                  <div>
-                    <p className="text-gray-500">Date & Time</p>
-                    <p className="font-semibold">{bookingDetails.date} at {bookingDetails.time}</p>
-                  </div>
-                  <div>
-                    <p className="text-gray-500">Ride Type</p>
-                    <p className="font-semibold capitalize">{bookingDetails.rideType}</p>
-                  </div>
-                </div>
+            {selectedVehicle && !rideConfirmed && (
+              <div className="text-center mt-8">
+                <button
+                  onClick={handleConfirmRide}
+                  className="bg-gradient-to-r from-purple-500 to-indigo-500 text-white px-8 py-4 rounded-full font-bold text-lg shadow-lg hover:scale-105 transition transform"
+                >
+                  Confirm {selectedVehicle.type} Ride
+                </button>
               </div>
+            )}
 
-              <MotionButton
-                type="button"
-                className="btn btn-primary px-8"
-                onClick={() => {
-                  setIsBookingConfirmed(false);
-                  setBookingStep(1);
-                  setBookingDetails({
-                    pickup: '',
-                    destination: '',
-                    date: '',
-                    time: '',
-                    rideType: 'standard',
-                  });
-                }}
+            {rideConfirmed && (
+              <div className="text-center mt-8">
+                <h2 className="text-3xl font-bold text-green-600">🎉 Ride Confirmed!</h2>
+                <p className="mt-2 text-gray-600">Your {selectedVehicle.type} ride is on its way!</p>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Right Side - Map */}
+        <div className="flex flex-col">
+          <div className="bg-white p-6 rounded-3xl shadow-2xl">
+            {!isLoaded ? (
+              <div className="w-full h-[400px] bg-gray-200 animate-pulse rounded-2xl"></div>
+            ) : (
+              <GoogleMap
+                mapContainerStyle={containerStyle}
+                center={directionsResponse ? directionsResponse.routes[0].overview_path[0] : { lat: 28.6139, lng: 77.2090 }}
+                zoom={13}
+                options={{ disableDefaultUI: true }}
               >
-                Book Another Ride
-              </MotionButton>
-            </motion.div>
-          )}
-        </AnimatePresence>
+                {directionsResponse && (
+                  <DirectionsRenderer
+                    directions={directionsResponse}
+                    options={{
+                      polylineOptions: {
+                        strokeColor: '#7c3aed', 
+                        strokeOpacity: 0.9,
+                        strokeWeight: 6,
+                      },
+                    }}
+                  />
+                )}
+              </GoogleMap>
+            )}
+          </div>
+
+          {/* ETA and AQI Details */}
+          <div className="mt-6 bg-white p-6 rounded-3xl shadow-2xl flex flex-col md:flex-row justify-around text-center text-lg font-semibold">
+            <div>
+              ⏰ Estimated Time: 
+              <span className="text-purple-600 ml-2">{eta || 'N/A'}</span>
+            </div>
+            <div className="mt-4 md:mt-0">
+              🌫️ Air Quality: 
+              <span className="text-green-600 ml-2">{aqi ? getAQILevel(aqi) : 'Loading...'}</span>
+            </div>
+          </div>
+        </div>
       </div>
-    </motion.div>
+    </div>
   );
 };
 
