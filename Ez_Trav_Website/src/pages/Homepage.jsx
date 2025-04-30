@@ -64,9 +64,9 @@ const Homepage = () => {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               {[
                 {
-                  title: "Fast Pickup",
-                  description: "Get a ride in minutes, even during peak hours",
-                  icon: "🚀",
+                  title: "Garanteed Trip",
+                  description: "Trip will be garanteed!",
+                  icon: "✅",
                 },
                 {
                   title: "Low Prices",
