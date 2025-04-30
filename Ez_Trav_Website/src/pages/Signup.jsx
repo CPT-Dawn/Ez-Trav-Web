@@ -1,23 +1,22 @@
-import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
-import { motion } from 'framer-motion';
+import React, { useState } from "react";
+import { Link } from "react-router-dom";
+import { motion } from "framer-motion";
 
 const Signup = ({ onSignup }) => {
-  const [name, setName] = useState('');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
-  const [error, setError] = useState('');
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [error, setError] = useState("");
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    
-    // Simple validation
+
     if (password !== confirmPassword) {
-      setError('Passwords do not match');
+      setError("Passwords do not match");
       return;
     }
-    
+
     if (name && email && password) {
       onSignup();
     }
@@ -37,15 +36,17 @@ const Signup = ({ onSignup }) => {
           animate={{ y: 0 }}
           transition={{ duration: 0.5 }}
         >
-          <h2 className="text-3xl font-bold text-center mb-6 text-purple-600">Create Account</h2>
+          <h2 className="text-3xl font-bold text-center mb-6 text-purple-600">
+            Create Account
+          </h2>
         </motion.div>
-        
+
         {error && (
           <div className="mb-4 p-3 bg-red-100 text-red-700 rounded-md">
             {error}
           </div>
         )}
-        
+
         <form onSubmit={handleSubmit}>
           <div className="mb-4">
             <label className="block text-gray-700 mb-2" htmlFor="name">
@@ -60,7 +61,7 @@ const Signup = ({ onSignup }) => {
               required
             />
           </div>
-          
+
           <div className="mb-4">
             <label className="block text-gray-700 mb-2" htmlFor="email">
               Email
@@ -74,7 +75,7 @@ const Signup = ({ onSignup }) => {
               required
             />
           </div>
-          
+
           <div className="mb-4">
             <label className="block text-gray-700 mb-2" htmlFor="password">
               Password
@@ -88,9 +89,12 @@ const Signup = ({ onSignup }) => {
               required
             />
           </div>
-          
+
           <div className="mb-6">
-            <label className="block text-gray-700 mb-2" htmlFor="confirmPassword">
+            <label
+              className="block text-gray-700 mb-2"
+              htmlFor="confirmPassword"
+            >
               Confirm Password
             </label>
             <input
@@ -102,7 +106,7 @@ const Signup = ({ onSignup }) => {
               required
             />
           </div>
-          
+
           <motion.button
             whileHover={{ scale: 1.03 }}
             whileTap={{ scale: 0.97 }}
@@ -111,10 +115,10 @@ const Signup = ({ onSignup }) => {
           >
             Sign Up
           </motion.button>
-          
+
           <div className="text-center">
             <p className="text-gray-600">
-              Already have an account?{' '}
+              Already have an account?{" "}
               <Link to="/login" className="text-purple-600 hover:underline">
                 Log in
               </Link>

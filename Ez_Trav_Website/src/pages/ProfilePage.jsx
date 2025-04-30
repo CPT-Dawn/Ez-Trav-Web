@@ -29,7 +29,6 @@ const ProfilePage = ({ onLogout }) => {
     { id: "payment", label: "Payment Methods" },
   ];
 
-  // Mocked ride history
   const rideHistory = [
     {
       id: 1,
@@ -65,7 +64,6 @@ const ProfilePage = ({ onLogout }) => {
     },
   ];
 
-  // Mocked payment methods
   const paymentMethods = [
     {
       id: 1,
@@ -84,7 +82,6 @@ const ProfilePage = ({ onLogout }) => {
       className="container mx-auto px-4 py-8"
     >
       <div className="max-w-4xl mx-auto bg-white rounded-lg shadow-md overflow-hidden">
-        {/* Header */}
         <div className="bg-purple-600 p-6 text-white">
           <div className="flex items-center justify-between">
             <div>
@@ -102,7 +99,6 @@ const ProfilePage = ({ onLogout }) => {
           </div>
         </div>
 
-        {/* Tabs */}
         <div className="border-b">
           <nav className="flex">
             {tabItems.map((tab) => (
@@ -121,9 +117,7 @@ const ProfilePage = ({ onLogout }) => {
           </nav>
         </div>
 
-        {/* Tab Content */}
         <div className="p-6">
-          {/* Profile Tab */}
           {activeTab === "profile" && (
             <motion.div
               initial={{ opacity: 0 }}
@@ -278,7 +272,6 @@ const ProfilePage = ({ onLogout }) => {
             </motion.div>
           )}
 
-          {/* Rides Tab */}
           {activeTab === "rides" && (
             <motion.div
               initial={{ opacity: 0 }}
@@ -352,7 +345,6 @@ const ProfilePage = ({ onLogout }) => {
             </motion.div>
           )}
 
-          {/* Payment Methods Tab */}
           {activeTab === "payment" && (
             <motion.div
               initial={{ opacity: 0 }}
@@ -387,30 +379,14 @@ const ProfilePage = ({ onLogout }) => {
                         <p className="text-sm text-gray-500">{method.type}</p>
                       </div>
                     </div>
-                    <div className="flex items-center space-x-2">
-                      {method.isDefault && (
-                        <span className="bg-purple-100 text-purple-700 text-xs font-medium px-2 py-1 rounded">
-                          Default
-                        </span>
-                      )}
-                      <button className="text-gray-500 hover:text-gray-700">
-                        <span className="sr-only">Edit</span>
-                        ✏️
-                      </button>
-                      <button className="text-gray-500 hover:text-red-600">
-                        <span className="sr-only">Delete</span>
-                        🗑️
-                      </button>
-                    </div>
+                    {method.isDefault && (
+                      <span className="px-2 py-1 text-xs text-white bg-purple-600 rounded-full">
+                        Default
+                      </span>
+                    )}
                   </div>
                 ))}
               </div>
-
-              {paymentMethods.length === 0 && (
-                <div className="text-center py-8">
-                  <p className="text-gray-500">No payment methods added yet.</p>
-                </div>
-              )}
             </motion.div>
           )}
         </div>

@@ -29,7 +29,7 @@ const BookingPage = () => {
   const [aqi, setAqi] = useState(null);
 
   const { isLoaded } = useJsApiLoader({
-    googleMapsApiKey: "AIzaSyC7egbUiZzouXh68Qg5C95YrbzuGT0av_Y", // <-- Replace with your actual key
+    googleMapsApiKey: "AIzaSyC7egbUiZzouXh68Qg5C95YrbzuGT0av_Y",
     libraries: ["places"],
   });
 
@@ -46,10 +46,10 @@ const BookingPage = () => {
         });
       }
       if (destinationRef.current) {
-        const autocompleteDestination = new window.google.maps.places.Autocomplete(
-          destinationRef.current,
-          { types: ["geocode"] }
-        );
+        const autocompleteDestination =
+          new window.google.maps.places.Autocomplete(destinationRef.current, {
+            types: ["geocode"],
+          });
         autocompleteDestination.addListener("place_changed", () => {
           const place = autocompleteDestination.getPlace();
           setDestination(place.formatted_address || "");
@@ -85,7 +85,7 @@ const BookingPage = () => {
 
   const fetchAQI = async (lat, lng) => {
     try {
-      const apiKey = "YOUR_GOOGLE_API_KEY"; // <-- Replace your key
+      const apiKey = "AIzaSyC7egbUiZzouXh68Qg5C95YrbzuGT0av_Y";
       const response = await fetch(
         `https://airquality.googleapis.com/v1/currentConditions:lookup?key=${apiKey}`,
         {
@@ -100,12 +100,12 @@ const BookingPage = () => {
           }),
         }
       );
-  
+
       const data = await response.json();
       console.log("Google AQI Data:", data);
-  
+
       if (Array.isArray(data.indexes) && data.indexes.length > 0) {
-        const aqiValue = data.indexes[0].aqi; // <-- Correct place!
+        const aqiValue = data.indexes[0].aqi;
         setAqi(aqiValue);
       } else {
         console.error("Invalid AQI response:", data);
@@ -116,7 +116,6 @@ const BookingPage = () => {
       setAqi("unavailable");
     }
   };
-  
 
   const handleVehicleSelect = (vehicle) => {
     setSelectedVehicle(vehicle);
@@ -152,7 +151,7 @@ const BookingPage = () => {
       </h1>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-10 w-full max-w-7xl">
-        {/* Left Side */}
+        {}
         <div className="bg-white p-8 rounded-3xl shadow-2xl flex flex-col">
           <div className="space-y-6">
             <div>
@@ -180,7 +179,7 @@ const BookingPage = () => {
             </div>
           </div>
 
-          {/* Vehicle Selection */}
+          {}
           <div className="mt-8">
             <h2 className="text-2xl font-bold mb-4 text-gray-800">
               Choose Your Vehicle
@@ -228,7 +227,7 @@ const BookingPage = () => {
           </div>
         </div>
 
-        {/* Right Side - Map */}
+        {}
         <div className="flex flex-col">
           <div className="bg-white p-6 rounded-3xl shadow-2xl">
             {!isLoaded ? (
@@ -260,7 +259,7 @@ const BookingPage = () => {
             )}
           </div>
 
-          {/* ETA and AQI Details */}
+          {}
           <div className="mt-6 bg-white p-6 rounded-3xl shadow-2xl flex flex-col md:flex-row justify-around text-center text-lg font-semibold">
             <div>
               ⏰ Estimated Time:
@@ -270,12 +269,20 @@ const BookingPage = () => {
               🌫️ Air Quality:
               {aqi && typeof aqi === "number" && (
                 <div className="flex items-center gap-2 mt-2">
-                  <div className={`w-4 h-4 rounded-full ${getAQIColor(aqi)}`}></div>
-                  <span className="text-green-600">{`${getAQILevel(aqi)} (${aqi})`}</span>
+                  <div
+                    className={`w-4 h-4 rounded-full ${getAQIColor(aqi)}`}
+                  ></div>
+                  <span className="text-green-600">{`${getAQILevel(
+                    aqi
+                  )} (${aqi})`}</span>
                 </div>
               )}
-              {aqi === "unavailable" && <span className="text-gray-500 ml-2">Unavailable</span>}
-              {!aqi && aqi !== "unavailable" && <span className="text-gray-500 ml-2">Loading...</span>}
+              {aqi === "unavailable" && (
+                <span className="text-gray-500 ml-2">Unavailable</span>
+              )}
+              {!aqi && aqi !== "unavailable" && (
+                <span className="text-gray-500 ml-2">Loading...</span>
+              )}
             </div>
           </div>
         </div>

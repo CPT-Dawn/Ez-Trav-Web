@@ -1,14 +1,13 @@
-import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
-import { motion } from 'framer-motion';
+import React, { useState } from "react";
+import { Link } from "react-router-dom";
+import { motion } from "framer-motion";
 
 const Login = ({ onLogin }) => {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    // Simple validation
     if (email && password) {
       onLogin();
     }
@@ -28,9 +27,11 @@ const Login = ({ onLogin }) => {
           animate={{ y: 0 }}
           transition={{ duration: 0.5 }}
         >
-          <h2 className="text-3xl font-bold text-center mb-6 text-purple-600">Welcome Back</h2>
+          <h2 className="text-3xl font-bold text-center mb-6 text-purple-600">
+            Welcome Back
+          </h2>
         </motion.div>
-        
+
         <form onSubmit={handleSubmit}>
           <div className="mb-4">
             <label className="block text-gray-700 mb-2" htmlFor="email">
@@ -45,7 +46,7 @@ const Login = ({ onLogin }) => {
               required
             />
           </div>
-          
+
           <div className="mb-6">
             <label className="block text-gray-700 mb-2" htmlFor="password">
               Password
@@ -64,7 +65,7 @@ const Login = ({ onLogin }) => {
               </a>
             </div>
           </div>
-          
+
           <motion.button
             whileHover={{ scale: 1.03 }}
             whileTap={{ scale: 0.97 }}
@@ -73,10 +74,10 @@ const Login = ({ onLogin }) => {
           >
             Log In
           </motion.button>
-          
+
           <div className="text-center">
             <p className="text-gray-600">
-              Don't have an account?{' '}
+              Don't have an account?{" "}
               <Link to="/signup" className="text-purple-600 hover:underline">
                 Sign up
               </Link>
