@@ -17,6 +17,7 @@ const dummyVehicles = [
   { id: 3, type: "Luxury", price: "₹400" },
 ];
 
+
 const BookingPage = () => {
   const [pickup, setPickup] = useState("");
   const [destination, setDestination] = useState("");
