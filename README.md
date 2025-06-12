@@ -66,13 +66,6 @@
 
 ---
 
-## 🤝 Contributing
-
-We love community contributions!  
-See [CONTRIBUTING.md](CONTRIBUTING.md) for ideas and guidance.
-
----
-
 ## 📜 License
 
 MIT — see [LICENSE](LICENSE) for details.
